@@ -138,6 +138,15 @@ class Move:
     def apply(self):
         raise NotImplemented()
 
+    @classmethod
+    def from_dict(cls, in_dict):
+        if in_dict['type'] == 'PickingMove':
+            return PickingMove.from_dict(in_dict)
+        elif in_dict['type'] == 'PlacementMove':
+            return PlacementMove.from_dict(in_dict)
+        else:
+            raise Exception('Cannot determine the type of move')
+
 
 class PickingMove(Move):
     def __init__(self, piece):
@@ -145,6 +154,7 @@ class PickingMove(Move):
 
     def to_dict(self):
         return {
+            'type': 'PickingMove',
             'piece': self.piece.to_dict()
         }
 
@@ -174,6 +184,7 @@ class PlacementMove(Move):
 
     def to_dict(self):
         return {
+            'type': 'PlacementMove',
             'x': self.x,
             'y': self.y,
         }

@@ -98,11 +98,19 @@ class TestPlacementMove(unittest.TestCase):
     def test_to_dict(self):
         self.assertEqual(
             PlacementMove(1, 2).to_dict(),
-            {'x': 1, 'y': 2}
+            {
+                'type': 'PlacementMove',
+                'x': 1,
+                'y': 2
+            }
         )
 
     def test_from_dict(self):
-        placement_move = PlacementMove.from_dict({'x': 1, 'y': 2})
+        placement_move = PlacementMove.from_dict(
+            {
+                'x': 1, 'y': 2, 'type': 'PlacementMove'
+            }
+        )
         self.assertEqual(
             placement_move.x,
             1
@@ -118,6 +126,7 @@ class TestPickingMove(unittest.TestCase):
         self.assertEqual(
             PickingMove(Piece(4)).to_dict(),
             {
+                'type': 'PickingMove',
                 'piece': {
                     'value': 4
                 }
@@ -126,6 +135,7 @@ class TestPickingMove(unittest.TestCase):
 
     def test_from_dict(self):
         picking_move = PickingMove.from_dict({
+            'type': 'PickingMove',
             'piece': {
                 'value': 5
             }
@@ -155,6 +165,80 @@ class TestPlayer(unittest.TestCase):
             Player.from_dict({'name': 'sam'}),
             Player('same')
         )
+
+
+class TestEvent(unittest.TestCase):
+    def test_to_dict(self):
+        self.assertEqual(
+            Event(
+                Player('bob'),
+                PickingMove(
+                    Piece(2)
+                )
+            ).to_dict(),
+            {
+                'player': {
+                    'name': 'bob'
+                },
+                'move': {
+                    'type': 'PickingMove',
+                    'piece': {
+                        'value': 2
+                    }
+                }
+            }
+        )
+
+    def test_from_dict(self):
+        event = Event.from_dict({
+            'player': {
+                'name': 'bob'
+            },
+            'move': {
+                'type': 'PickingMove',
+                'piece': {
+                    'value': 2
+                }
+            }
+        })
+
+        self.assertEqual(
+            event.player.name, 'bob'
+        )
+        self.assertIsInstance(
+            event.move, PickingMove
+        )
+        self.assertEqual(
+            event.move.piece.value, 2
+        )
+
+    def test_placement_move(self):
+        event_dict = {
+            'player': {
+                'name': 'bob'
+            },
+            'move': {
+                'type': 'PlacementMove',
+                'x': 5,
+                'y': 1
+            }
+        }
+        event = Event.from_dict(event_dict)
+
+        self.assertEqual(
+            event.player.name, 'bob'
+        )
+        self.assertIsInstance(
+            event.move, PlacementMove
+        )
+        self.assertEqual(
+            event.move.x, 5
+        )
+        self.assertEqual(
+            event.move.y, 1
+        )
+
+        self.assertEqual(event.to_dict(), event_dict)
 
 
 if __name__ == '__main__':
