@@ -113,5 +113,28 @@ class TestPlacementMove(unittest.TestCase):
         )
 
 
+class TestPickingMove(unittest.TestCase):
+    def test_to_dict(self):
+        self.assertEqual(
+            PickingMove(Piece(4)).to_dict(),
+            {
+                'piece': {
+                    'value': 4
+                }
+            }
+        )
+
+    def test_from_dict(self):
+        picking_move = PickingMove.from_dict({
+            'piece': {
+                'value': 5
+            }
+        })
+
+        self.assertEqual(
+            picking_move.piece.value,
+            5
+        )
+
 if __name__ == '__main__':
     unittest.main()
