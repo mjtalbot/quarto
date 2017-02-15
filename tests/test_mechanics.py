@@ -136,5 +136,26 @@ class TestPickingMove(unittest.TestCase):
             5
         )
 
+
+class TestPlayer(unittest.TestCase):
+    def test_to_dict(self):
+        self.assertEqual(
+            Player('sam').to_dict(),
+            {'name': 'sam'}
+        )
+
+    def test_from_dict(self):
+        self.assertEqual(
+            Player.from_dict({'name': 'sam'}),
+            Player('sam')
+        )
+
+    def test_from_dict_crappy(self):
+        self.assertNotEqual(
+            Player.from_dict({'name': 'sam'}),
+            Player('same')
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
