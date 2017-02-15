@@ -1,5 +1,5 @@
 import unittest
-from models.mechanics import Game
+from models.mechanics import Game, PlacementMove, PickingMove, Player, Event
 from models.parts import Piece
 
 
@@ -91,6 +91,25 @@ class TestGame(unittest.TestCase):
         self.assertEqual(
             game.check_win(0, 3),
             True
+        )
+
+
+class TestPlacementMove(unittest.TestCase):
+    def test_to_dict(self):
+        self.assertEqual(
+            PlacementMove(1, 2).to_dict(),
+            {'x': 1, 'y': 2}
+        )
+
+    def test_from_dict(self):
+        placement_move = PlacementMove.from_dict({'x': 1, 'y': 2})
+        self.assertEqual(
+            placement_move.x,
+            1
+        )
+        self.assertEqual(
+            placement_move.y,
+            2
         )
 
 
