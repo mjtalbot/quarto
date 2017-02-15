@@ -38,7 +38,7 @@ class Game:
 
     @property
     def turn(self):
-        return len(self.moves)
+        return len(self.events)
 
     def __init_game(self):
         self.board = Board(self.size)
@@ -61,10 +61,10 @@ class Game:
             raise Exception("Player has already won")
 
         if self.turn % 4 in (0, 3):
-            if event.player is not self.player_a:
+            if event.player != self.player_a:
                 raise Exception("Illegal player")
         else:
-            if event.player is not self.player_b:
+            if event.player != self.player_b:
                 raise Exception("Illegal player")
 
         event.move.validate(self)
@@ -79,15 +79,15 @@ class Game:
         # Check if we've just won a game, based on having added
         # a piece to position x, y
         for winning_sets in self.board.get_rows(x, y):
-            horizontal_pieces = []
+            pieces = []
             for _x, _y in winning_sets:
                 last_piece = self.board.get(_x, _y)
                 if last_piece is None:
                     break
-                horizontal_pieces.append(last_piece)
+                pieces.append(last_piece)
             if (
-                len(horizontal_pieces) == self.board.size and
-                Piece.overlap(*horizontal_pieces)
+                len(pieces) == self.board.size and
+                Piece.overlap(*pieces)
             ):
                 return True
         return False
@@ -165,14 +165,13 @@ class PickingMove(Move):
         )
 
     def validate(self, game):
-        if len(game.turn) % 2 == 1:
+        if game.turn % 2 == 1:
             raise Exception("Illegal move")
         if self.piece not in game.remaining_pieces:
             raise Exception("Illegal piece choice")
         return
 
     def apply(self, game):
-        game.moves.append(self)
         game.next_piece = self.piece
         game.remaining_pieces.remove(self.piece)
 
@@ -197,9 +196,9 @@ class PlacementMove(Move):
         )
 
     def validate(self, game):
-        if len(game.turn) % 2 == 0:
+        if game.turn % 2 == 0:
             raise Exception("Illegal move")
-        if self.game.board.get(
+        if game.board.get(
             self.x,
             self.y,
         ) is not None:
@@ -207,11 +206,10 @@ class PlacementMove(Move):
         return
 
     def apply(self, game):
-
-        game.moves.append(self)
         game.board.put(
             game.next_piece,
             self.x,
             self.y
         )
         game.next_piece = None
+        return game.check_win(self.x, self.y)

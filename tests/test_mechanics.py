@@ -93,6 +93,206 @@ class TestGame(unittest.TestCase):
             True
         )
 
+    def _init_game(self):
+        game = Game()
+        game.player_a = Player('bob')
+        game.player_b = Player('sam')
+        return game
+
+    def test_game_bad_move(self):
+        game = self._init_game()
+        with self.assertRaises(Exception):
+            game.apply_event(Event(
+                Player('bob'),
+                PlacementMove(0, 1)
+            ))
+
+    def test_game_bad_player(self):
+        game = self._init_game()
+        with self.assertRaises(Exception):
+            game.apply_event(Event(
+                Player('sam'),
+                PickingMove(Piece(1))
+            ))
+
+    def test_game_good_move(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'),
+            PickingMove(Piece(0))
+        ))
+
+        self.assertEqual(
+            game.turn, 1
+        )
+
+        self.assertEqual(
+            game.next_piece, Piece(0)
+        )
+
+    def test_game_good_placement(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'),
+            PickingMove(Piece(0))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PlacementMove(0, 0)
+        ))
+
+        self.assertEqual(
+            game.turn, 2
+        )
+
+        self.assertEqual(
+            game.next_piece, None
+        )
+
+    def test_game_pick_taken(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'),
+            PickingMove(Piece(0))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PlacementMove(0, 0)
+        ))
+
+        with self.assertRaises(Exception):
+            game.apply_event(Event(
+                Player('sam'),
+                PickingMove(Piece(0))
+            ))
+
+    def test_game_2nd_pick_good(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'),
+            PickingMove(Piece(0))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PlacementMove(0, 0)
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PickingMove(Piece(1))
+        ))
+
+        self.assertEqual(
+            game.turn, 3
+        )
+
+        self.assertEqual(
+            game.next_piece.value, 1
+        )
+
+    def test_game_2nd_move_taken(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'),
+            PickingMove(Piece(0))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PlacementMove(0, 0)
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PickingMove(Piece(1))
+        ))
+
+        with self.assertRaises(Exception):
+            game.apply_event(Event(
+                Player('bob'),
+                PlacementMove(0, 0)
+            ))
+
+    def test_game_2nd_move_good(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'),
+            PickingMove(Piece(0))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PlacementMove(0, 0)
+        ))
+
+        game.apply_event(Event(
+            Player('sam'),
+            PickingMove(Piece(1))
+        ))
+
+        game.apply_event(Event(
+            Player('bob'),
+            PlacementMove(0, 1)
+        ))
+
+        self.assertEqual(
+            game.turn, 4
+        )
+
+        self.assertEqual(
+            game.next_piece, None
+        )
+
+    def test_game_victory_for_bob(self):
+        game = self._init_game()
+
+        game.apply_event(Event(
+            Player('bob'), PickingMove(Piece(0))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'), PlacementMove(0, 0)
+        ))
+
+        game.apply_event(Event(
+            Player('sam'), PickingMove(Piece(1))
+        ))
+
+        game.apply_event(Event(
+            Player('bob'), PlacementMove(0, 1)
+        ))
+
+        game.apply_event(Event(
+            Player('bob'), PickingMove(Piece(2))
+        ))
+
+        game.apply_event(Event(
+            Player('sam'), PlacementMove(0, 2)
+        ))
+
+        game.apply_event(Event(
+            Player('sam'), PickingMove(Piece(3))
+        ))
+
+        self.assertEqual(game.winner, None)
+        game.apply_event(Event(
+            Player('bob'), PlacementMove(0, 3)
+        ))
+        self.assertEqual(game.winner, Player('bob'))
+        with self.assertRaises(Exception):
+            game.apply_event(Event(
+                Player('bob'), PickingMove(Piece(4))
+            ))
+
 
 class TestPlacementMove(unittest.TestCase):
     def test_to_dict(self):
