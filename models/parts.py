@@ -72,6 +72,9 @@ class Piece:
     def from_dict(cls, in_dict):
         return cls(in_dict['value'])
 
+    def __eq__(self, other):
+        return self.value == other.value
+
     @classmethod
     def overlap(cls, *pieces, length=4):
         # positive check

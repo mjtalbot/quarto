@@ -183,6 +183,20 @@ class TestPiece(unittest.TestCase):
                 overlaps, 14
             )
 
+    def test_to_dict(self):
+        self.assertEqual(
+            Piece(5).to_dict(),
+            {'value': 5}
+        )
+
+    def test_from_dict(self):
+        self.assertEqual(
+            Piece.from_dict(
+                {'value': 5}
+            ),
+            Piece(5)
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
