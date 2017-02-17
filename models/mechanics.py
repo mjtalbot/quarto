@@ -14,6 +14,16 @@ class Game:
         self.__init_game()
         self.winner = None
 
+    def join_game(self, player):
+        if self.player_a is None:
+            self.player_a = player
+        elif self.player_b is None:
+            if self.player_a == player:
+                raise Exception('Player already in game')
+            self.player_b = player
+        else:
+            raise Exception('Game already full')
+
     def to_dict(self):
         return {
             'size': self.size,
@@ -59,6 +69,9 @@ class Game:
 
         if self.winner is not None:
             raise Exception("Player has already won")
+
+        if self.player_a is None or self.player_b is None:
+            raise Exception("Missing players")
 
         if self.turn % 4 in (0, 3):
             if event.player != self.player_a:

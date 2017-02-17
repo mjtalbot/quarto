@@ -19,18 +19,16 @@ Simple game that lets you play quarto. well it lets a computer play really, ther
 # API
 
 # Create Game
-
     POST /game/quarto/
     @param player_name
+    @param public (not implemented)
     @returns game_id
 
 # Join Game
-
     POST /game/quarto/<game_id>/join
     @param player_name
 
 # Get Game State
-
     GET /game/quarto/<game_id>
     @returns json dump of game state. (board, moves, all that shit)
 
@@ -45,11 +43,17 @@ Simple game that lets you play quarto. well it lets a computer play really, ther
     @param x
     @param y
 
-# Invite Player
-
-    POST /game/quarto/<game_id>/invite
 
 
-# Register Available
+# Websockets
 
-    POST /game/quarto/<player_id>
+# up register Available to play
+# up give game state
+
+# down you're in game with id
+# down move & state for game with id
+# down you're move
+# down game ids you're playing in
+
+
+# rest api to get games your in. 
