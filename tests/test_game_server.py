@@ -55,3 +55,51 @@ class TestGameServer(unittest.TestCase):
         game_uuid, game = self.game_server.create_game('paul')
         with self.assertRaises(Exception):
             self.game_server.join_game(game_uuid, 'paul')
+
+    def test_pick_piece_ok(self):
+        game_uuid, game = self.game_server.create_game('paul')
+        self.game_server.join_game(game_uuid, 'sam')
+        self.game_server.picking_move(
+            game_uuid, 'paul', 1
+        )
+
+    def test_pick_piece_game_not_ready(self):
+        game_uuid, game = self.game_server.create_game('paul')
+        with self.assertRaises(Exception):
+            self.game_server.picking_move(
+                game_uuid, 'paul', 1
+            )
+
+    def test_pick_piece_wrong_player(self):
+        game_uuid, game = self.game_server.create_game('paul')
+        self.game_server.join_game(game_uuid, 'sam')
+        with self.assertRaises(Exception):
+            self.game_server.picking_move(
+                game_uuid, 'sam', 1
+            )
+        with self.assertRaises(Exception):
+            self.game_server.picking_move(
+                game_uuid, 'bob', 1
+            )
+
+    def test_pick_piece_doesnt_exist(self):
+        game_uuid, game = self.game_server.create_game('paul')
+        self.game_server.join_game(game_uuid, 'sam')
+        with self.assertRaises(Exception):
+            self.game_server.picking_move(
+                game_uuid, 'paul', 16
+            )
+
+    def test_pick_piece_already_picked(self):
+        game_uuid, game = self.game_server.create_game('paul')
+        self.game_server.join_game(game_uuid, 'sam')
+        self.game_server.picking_move(
+            game_uuid, 'paul', 15
+        )
+        self.game_server.placement_move(
+            game_uuid, 'sam', 0, 0
+        )
+        with self.assertRaises(Exception):
+            self.game_server.picking_move(
+                game_uuid, 'sam', 15
+            )

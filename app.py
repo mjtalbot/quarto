@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from server.gameserver import GameServer, GameNotFound
+from server.game_server import GameServer, GameNotFound
 from server.flask_helpers import InvalidUsage
 from models.configuration import configuration
 
@@ -80,7 +80,7 @@ def place_piece(game_uuid):
     player_name = _get_required_param('player_name')
     x = _get_required_param('x')
     y = _get_required_param('y')
-    app.game_server.picking_move(game_uuid, player_name, x, y)
+    app.game_server.placement_move(game_uuid, player_name, x, y)
     return 'ok'
 
 
