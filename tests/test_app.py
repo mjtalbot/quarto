@@ -20,16 +20,45 @@ class TestGameServer(unittest.TestCase):
         rv = self.app.get('/')
         self.assertEqual(b'Hello World!', rv.data)
 
-    def test_create_game(self):
+    def _get_game(self, game_uuid):
+        rv = self.app.get(
+            '/api/v1/game/quarto/{}'.format(game_uuid)
+        )
+
+        self.assertEqual(
+            rv.status_code,
+            200
+        )
+        return json.loads(rv.data)
+
+    def _create_game(self, player_name):
         rv = self.app.post(
             '/api/v1/game/quarto',
             data=dict(
-                player_name='bingo'
+                player_name=player_name
             )
         )
-        json_data = json.loads(rv.data)
-        self.assertIn('game_uuid', json_data)
+        self.assertEqual(
+            rv.status_code,
+            200
+        )
+        return json.loads(rv.data)
 
+    def _join_game(self, game_uuid, player_name):
+        rv = self.app.post(
+            '/api/v1/game/quarto/{}/join'.format(game_uuid),
+            data=dict(
+                player_name=player_name
+            )
+        )
+        self.assertEqual(
+            rv.status_code,
+            200
+        )
+
+    def test_create_game(self):
+        json_data = self._create_game('bingo')
+        self.assertIn('game_uuid', json_data)
 
         self.assertTrue(
             os.path.exists(
@@ -39,84 +68,93 @@ class TestGameServer(unittest.TestCase):
                 )
             )
         )
-    #
-    # def test_get_game_does_not_exist(self):
-    #     with self.assertRaises(GameNotFound):
-    #         self.game_server.load_game('bob')
-    #
-    # def test_get_game_exists(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #
-    #     game2 = self.game_server.load_game(game_uuid)
-    #     self.assertEqual(
-    #         game.to_dict(),
-    #         game2.to_dict()
-    #     )
-    #
-    # def test_join_game(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #
-    #     game = self.game_server.join_game(game_uuid, 'sam')
-    #     self.assertEqual(
-    #         game.player_b.name, 'sam'
-    #     )
-    #
-    # def test_join_game_full(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #
-    #     self.game_server.join_game(game_uuid, 'sam')
-    #     with self.assertRaises(Exception):
-    #         self.game_server.join_game(game_uuid, 'bob')
-    #
-    # def test_join_game_already_joined(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #     with self.assertRaises(Exception):
-    #         self.game_server.join_game(game_uuid, 'paul')
-    #
-    # def test_pick_piece_ok(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #     self.game_server.join_game(game_uuid, 'sam')
-    #     self.game_server.picking_move(
-    #         game_uuid, 'paul', 1
-    #     )
-    #
-    # def test_pick_piece_game_not_ready(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #     with self.assertRaises(Exception):
-    #         self.game_server.picking_move(
-    #             game_uuid, 'paul', 1
-    #         )
-    #
-    # def test_pick_piece_wrong_player(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #     self.game_server.join_game(game_uuid, 'sam')
-    #     with self.assertRaises(Exception):
-    #         self.game_server.picking_move(
-    #             game_uuid, 'sam', 1
-    #         )
-    #     with self.assertRaises(Exception):
-    #         self.game_server.picking_move(
-    #             game_uuid, 'bob', 1
-    #         )
-    #
-    # def test_pick_piece_doesnt_exist(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #     self.game_server.join_game(game_uuid, 'sam')
-    #     with self.assertRaises(Exception):
-    #         self.game_server.picking_move(
-    #             game_uuid, 'paul', 16
-    #         )
-    #
-    # def test_pick_piece_already_picked(self):
-    #     game_uuid, game = self.game_server.create_game('paul')
-    #     self.game_server.join_game(game_uuid, 'sam')
-    #     self.game_server.picking_move(
-    #         game_uuid, 'paul', 15
-    #     )
-    #     self.game_server.placement_move(
-    #         game_uuid, 'sam', 0, 0
-    #     )
-    #     with self.assertRaises(Exception):
-    #         self.game_server.picking_move(
-    #             game_uuid, 'sam', 15
-    #         )
+
+    def test_get_game_does_not_exist(self):
+        rv = self.app.get(
+            '/api/v1/game/quarto/random_game_uuid'
+        )
+        self.assertEqual(
+            rv.status_code,
+            404
+        )
+
+    def test_get_game_exists(self):
+        json_data = self._create_game('bingo')
+        game_data = self._get_game(json_data['game_uuid'])
+        self.assertEqual(
+            game_data['player_a'],
+            {'name': 'bingo'}
+        )
+
+    def test_join_game(self):
+        json_data = self._create_game('bingo')
+        game_uuid = json_data['game_uuid']
+
+        rv = self.app.post(
+            '/api/v1/game/quarto/{}/join'.format(game_uuid),
+            data=dict(
+                player_name='sam'
+            )
+        )
+        self.assertEqual(
+            rv.status_code,
+            200
+        )
+
+        game_data = self._get_game(json_data['game_uuid'])
+
+        self.assertEqual(
+            game_data['player_b'],
+            {'name': 'sam'}
+        )
+
+    def test_join_game_full(self):
+        json_data = self._create_game('bingo')
+        game_uuid = json_data['game_uuid']
+
+        self.app.post(
+            '/api/v1/game/quarto/{}/join'.format(game_uuid),
+            data=dict(
+                player_name='sam'
+            )
+        )
+        rv = self.app.post(
+            '/api/v1/game/quarto/{}/join'.format(game_uuid),
+            data=dict(
+                player_name='sam2'
+            )
+        )
+        self.assertEqual(
+            rv.status_code,
+            400
+        )
+
+    def test_join_game_already_joined(self):
+        json_data = self._create_game('bingo')
+        game_uuid = json_data['game_uuid']
+
+        rv = self.app.post(
+            '/api/v1/game/quarto/{}/join'.format(game_uuid),
+            data=dict(
+                player_name='bingo'
+            )
+        )
+        self.assertEqual(
+            rv.status_code,
+            400
+        )
+
+    def test_pick_piece_ok(self):
+        json_data = self._create_game('bingo')
+        self._join_game(json_data['game_uuid'], 'sam')
+
+        rv = self.app.post(
+            '/api/v1/game/quarto/{}/pick'.format(
+                json_data['game_uuid']
+            ),
+            data=dict(
+                player_name='bingo',
+                number=12,
+            )
+        )
+        self.assertEqual(rv.data, b'ok')

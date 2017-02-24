@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from server.game_server import GameServer, GameNotFound
 from server.flask_helpers import InvalidUsage
 from models.configuration import configuration
+from models.mechanics import GameStateError
 
 
 app = Flask(__name__)
@@ -25,19 +26,35 @@ def handle_game_not_found(error):
     return response
 
 
+@app.errorhandler(GameStateError)
+def handle_game_state_error(error):
+    response = jsonify({'message': error.args[0]})
+    response.status_code = 400
+    return response
+
+
 @app.route("/")
 def hello():
     return "Hello World!"
 
 
-def _get_required_param(param_name):
+def _get_required_param(param_name, typecast=None):
     param = request.values.get(param_name)
     if param is None:
         raise InvalidUsage(
             'Missing parameter "{}"'.format(param_name),
             status_code=400
         )
-    return param
+    try:
+        if typecast:
+            return typecast(param)
+        else:
+            return param
+    except:
+        raise InvalidUsage(
+            'Invalid type, expect "{}"'.format(typecast),
+            status_code=400
+        )
 
 
 @app.route("/api/v1/game/quarto", methods=["POST"])
@@ -73,7 +90,7 @@ def join_game(game_uuid):
 @app.route("/api/v1/game/quarto/<game_uuid>/pick", methods=["POST"])
 def pick_piece(game_uuid):
     player_name = _get_required_param('player_name')
-    number = _get_required_param('number')
+    number = _get_required_param('number', int)
     app.game_server.picking_move(game_uuid, player_name, number)
     return 'ok'
 

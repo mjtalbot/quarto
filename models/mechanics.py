@@ -1,6 +1,10 @@
 from models.parts import Board, Piece
 
 
+class GameStateError(Exception):
+    pass
+
+
 class Game:
     def __init__(self, size=4):
         self.size = size
@@ -19,10 +23,10 @@ class Game:
             self.player_a = player
         elif self.player_b is None:
             if self.player_a == player:
-                raise Exception('Player already in game')
+                raise GameStateError('Player already in game')
             self.player_b = player
         else:
-            raise Exception('Game already full')
+            raise GameStateError('Game already full')
 
     def to_dict(self):
         return {
@@ -68,17 +72,17 @@ class Game:
         # so:
 
         if self.winner is not None:
-            raise Exception("Player has already won")
+            raise GameStateError("Player has already won")
 
         if self.player_a is None or self.player_b is None:
-            raise Exception("Missing players")
+            raise GameStateError("Missing players")
 
         if self.turn % 4 in (0, 3):
             if event.player != self.player_a:
-                raise Exception("Illegal player")
+                raise GameStateError("Illegal player")
         else:
             if event.player != self.player_b:
-                raise Exception("Illegal player")
+                raise GameStateError("Illegal player")
 
         event.move.validate(self)
         victory = event.move.apply(self)
@@ -158,7 +162,7 @@ class Move:
         elif in_dict['type'] == 'PlacementMove':
             return PlacementMove.from_dict(in_dict)
         else:
-            raise Exception('Cannot determine the type of move')
+            raise GameStateError('Cannot determine the type of move')
 
 
 class PickingMove(Move):
@@ -179,9 +183,9 @@ class PickingMove(Move):
 
     def validate(self, game):
         if game.turn % 2 == 1:
-            raise Exception("Illegal move")
+            raise GameStateError("Illegal move")
         if self.piece not in game.remaining_pieces:
-            raise Exception("Illegal piece choice")
+            raise GameStateError("Illegal piece choice")
         return
 
     def apply(self, game):
@@ -210,12 +214,12 @@ class PlacementMove(Move):
 
     def validate(self, game):
         if game.turn % 2 == 0:
-            raise Exception("Illegal move")
+            raise GameStateError("Illegal move")
         if game.board.get(
             self.x,
             self.y,
         ) is not None:
-            raise Exception("Illegal placement choice")
+            raise GameStateError("Illegal placement choice")
         return
 
     def apply(self, game):
