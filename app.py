@@ -5,7 +5,10 @@ from models.configuration import configuration
 
 
 app = Flask(__name__)
-app.game_server = GameServer(configuration)
+
+
+def set_game_server(game_server):
+    app.game_server = game_server
 
 
 @app.errorhandler(InvalidUsage)
@@ -85,6 +88,7 @@ def place_piece(game_uuid):
 
 
 if __name__ == "__main__":
+    set_game_server(GameServer(configuration))
     app.run(
         debug=True
     )
