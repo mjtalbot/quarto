@@ -20,6 +20,8 @@ Simple game that lets you play quarto. well it lets a computer play really, ther
 - General:
     create setup.py
     create an AI to play players if requested
+- Deploy
+    Autodeploy on master push
 
 # API
 
