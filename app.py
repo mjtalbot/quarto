@@ -5,7 +5,7 @@ from models.configuration import configuration
 from models.mechanics import GameStateError
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 
 def set_game_server(game_server):
@@ -35,7 +35,7 @@ def handle_game_state_error(error):
 
 @app.route("/")
 def hello():
-    return "Hello World!"
+    return app.send_static_file('html/index.html')
 
 
 def _get_required_param(param_name, typecast=None):

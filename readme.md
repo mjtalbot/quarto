@@ -4,17 +4,22 @@ Simple game that lets you play quarto. well it lets a computer play really, ther
 
 # Todo:
 
-- make a main, (maybe where you can play command line style? well.. maybe not)
-
-- make a setup
-- allow for this game to be importable. storable and loadable
-- make game host
-    - load games from file on demand (turn by turn i guess???)
-    - games get an id.
-    - store and load by id.
-    - func to get all the game
-    - websockets to tie into the game "live" as you wish...
-    - hopefully playing through the game each move is fast enough.. we'll see i guess.. but that should mean we dont have to keep anything much in memory.
+- UI:
+    - represent game in front end
+        - allow making moves
+        - make display for a game (uuid, player names, pieces and board)
+        - show winner (could get returned with the game when its won?)
+    - enhance ui
+    - add in bower
+- Backend:
+    - list closed games
+    - list open games
+    - list games you're in
+    - invite players to join (email or ai player name??)
+    - websocket support
+- General:
+    create setup.py
+    create an AI to play players if requested
 
 # API
 
@@ -56,4 +61,4 @@ Simple game that lets you play quarto. well it lets a computer play really, ther
 # down game ids you're playing in
 
 
-# rest api to get games your in. 
+# rest api to get games your in.

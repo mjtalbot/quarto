@@ -2,7 +2,7 @@ import unittest
 from models.configuration import (
     configuration, set_config, get_config
 )
-from server.game_server import GameServer, GameNotFound
+from server.game_server import GameServer
 import tempfile
 import os
 import json
@@ -15,10 +15,6 @@ class TestGameServer(unittest.TestCase):
         game_server = GameServer(configuration)
         set_game_server(game_server)
         self.app = app.test_client()
-
-    def test_hello_world(self):
-        rv = self.app.get('/')
-        self.assertEqual(b'Hello World!', rv.data)
 
     def _get_game(self, game_uuid):
         rv = self.app.get(
