@@ -153,4 +153,4 @@ class TestGameServer(unittest.TestCase):
                 number=12,
             )
         )
-        self.assertEqual(rv.data, b'ok')
+        self.assertEqual(rv.data, b'{\n  "message": "ok"\n}\n')

@@ -84,7 +84,9 @@ def join_game(game_uuid):
         game_uuid,
         player_name
     )
-    return 'ok'
+    return jsonify({
+        'message': 'ok'
+    })
 
 
 @app.route("/api/v1/game/quarto/<game_uuid>/pick", methods=["POST"])
@@ -92,16 +94,20 @@ def pick_piece(game_uuid):
     player_name = _get_required_param('player_name')
     number = _get_required_param('number', int)
     app.game_server.picking_move(game_uuid, player_name, number)
-    return 'ok'
+    return jsonify({
+        'message': 'ok'
+    })
 
 
 @app.route("/api/v1/game/quarto/<game_uuid>/place", methods=["POST"])
 def place_piece(game_uuid):
     player_name = _get_required_param('player_name')
-    x = _get_required_param('x')
-    y = _get_required_param('y')
+    x = _get_required_param('x', int)
+    y = _get_required_param('y', int)
     app.game_server.placement_move(game_uuid, player_name, x, y)
-    return 'ok'
+    return jsonify({
+        'message': 'ok'
+    })
 
 
 if __name__ == "__main__":

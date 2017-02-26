@@ -11,6 +11,7 @@ var create_game = function(player_name){
     });
     request.done(function(data, status, response) {
         if (response.status == 200) {
+            window.location.hash = data.game_uuid;
             get_game(data.game_uuid);
         }
     });
@@ -32,6 +33,40 @@ var join_game = function(game_uuid, player_name){
     });
 };
 
+var picking_move = function(game_uuid, player_name, number){
+    var request = $.ajax({
+        url: `/api/v1/game/quarto/${game_uuid}/pick`,
+        method: "POST",
+        dataType: "json",
+        data: {
+            'player_name': player_name,
+            'number': number,
+        }
+    });
+    request.done(function(data, status, response) {
+        if (response.status == 200) {
+            get_game(game_uuid);
+        }
+    });
+};
+var placement_move = function(game_uuid, player_name, x, y){
+    var request = $.ajax({
+        url: `/api/v1/game/quarto/${game_uuid}/place`,
+        method: "POST",
+        dataType: "json",
+        data: {
+            'player_name': player_name,
+            'x': x,
+            'y': y
+        }
+    });
+    request.done(function(data, status, response) {
+        if (response.status == 200) {
+            get_game(game_uuid);
+        }
+    });
+};
+
 var get_game = function(game_uuid){
     var request = $.ajax({
         url: `/api/v1/game/quarto/${game_uuid}`,
@@ -41,11 +76,14 @@ var get_game = function(game_uuid){
         if (response.status == 200) {
             game = new Game(
                 game_uuid,
-                data['player_a'],
-                data['player_b'],
-                data['events']
+                data.player_a,
+                data.player_b,
+                data.winner,
+                data.events
             );
-            console.log(game)
+            $('#game-space').html(
+                game.get_svg()
+            );
         }
     });
 };
@@ -72,4 +110,31 @@ $(document).ready(function(){
             get_game(game_uuid);
         }
     });
+
+
+
+    $('#game-space').on('click', '#remaining_pieces .piece', function(event) {
+        var target_value = event.currentTarget.getAttribute('value');
+        picking_move(
+            game.uuid,
+            $('#player-name').val(),
+            target_value
+        );
+    });
+
+    $('#game-space').on('click', '#board .position', function(event) {
+        var target_x = event.currentTarget.getAttribute('x_value');
+        var target_y = event.currentTarget.getAttribute('y_value');
+        placement_move(
+            game.uuid,
+            $('#player-name').val(),
+            target_x,
+            target_y
+        );
+    });
+
+    var game_uuid = window.location.hash.substr(1);
+    if (game_uuid !== ''){
+        get_game(game_uuid);
+    }
 });

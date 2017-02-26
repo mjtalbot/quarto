@@ -6,8 +6,7 @@ class GameStateError(Exception):
 
 
 class Game:
-    def __init__(self, size=4):
-        self.size = size
+    def __init__(self):
         self.player_a = None
         self.player_b = None
         self.events = []
@@ -30,9 +29,9 @@ class Game:
 
     def to_dict(self):
         return {
-            'size': self.size,
             'player_a': self.player_a.to_dict() if self.player_a else None,
             'player_b': self.player_b.to_dict() if self.player_b else None,
+            'winner': self.winner.to_dict() if self.winner else None,
             'events': [
                 event.to_dict() for event in self.events
             ]
@@ -40,7 +39,7 @@ class Game:
 
     @classmethod
     def from_dict(cls, in_dict):
-        game = cls(in_dict['size'])
+        game = cls()
         if in_dict['player_a'] is not None:
             game.player_a = Player.from_dict(in_dict['player_a'])
         if in_dict['player_b'] is not None:
@@ -55,8 +54,8 @@ class Game:
         return len(self.events)
 
     def __init_game(self):
-        self.board = Board(self.size)
-        for value in range(1 << self.size):
+        self.board = Board()
+        for value in range(1 << 4):
             self.remaining_pieces.append(
                 Piece(value)
             )
@@ -103,7 +102,7 @@ class Game:
                     break
                 pieces.append(last_piece)
             if (
-                len(pieces) == self.board.size and
+                len(pieces) == 4 and
                 Piece.overlap(*pieces)
             ):
                 return True
