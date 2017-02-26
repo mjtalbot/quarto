@@ -100,13 +100,17 @@ class Game {
             <div class="col-sm-2">Turn</div>
             <div class="col-sm-10">${this.get_turn()}</div>
         </div>
-        <svg width="1200" height="400">
-            ${this.board.get_board_svg(400)}
-            <g transform="translate(400,0)">
-                ${this.board.get_remaining_pieces_svg(400)}
+        <svg width="1200" height="700">
+            <g transform="translate(250,0)">
+                <g transform="rotate(30)">
+                    ${this.board.get_board_svg(500)}
+                </g>
             </g>
-            <g transform="translate(800,0)">
-                ${this.board.get_selected_piece(400)}
+            <g transform="translate(700,0)">
+                ${this.board.get_remaining_pieces_svg(300)}
+            </g>
+            <g transform="translate(1000,0)">
+                ${this.board.get_selected_piece(100)}
             </g>
         </svg>`;
 
@@ -219,9 +223,8 @@ class Board {
         var output = `<rect x="0" y="0"
             width="${total_width}" height="${total_width}"
             fill="pink"/>`;
-        var field_width = total_width/4;
         if (this.selected_piece){
-            output += this.selected_piece.get_piece_svg(field_width);
+            output += this.selected_piece.get_piece_svg(total_width);
         }
         return output;
     }
