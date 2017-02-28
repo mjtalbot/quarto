@@ -6,14 +6,16 @@ from server.game_server import GameServer
 import tempfile
 import os
 import json
-from app import app, set_game_server
+from app import app, game_wrapper, socketio
 
 
 class TestGameServer(unittest.TestCase):
     def setUp(self):
         set_config('quarto_game_store', tempfile.mkdtemp())
         game_server = GameServer(configuration)
-        set_game_server(game_server)
+        game_wrapper.set_game_server(game_server)
+        game_wrapper.set_flask_app(app)
+        game_wrapper.set_socket_io(socketio)
         self.app = app.test_client()
 
     def _get_game(self, game_uuid):
@@ -153,4 +155,21 @@ class TestGameServer(unittest.TestCase):
                 number=12,
             )
         )
-        self.assertEqual(rv.data, b'{\n  "message": "ok"\n}\n')
+        print(json.loads(rv.data))
+        self.assertEqual(
+            json.loads(rv.data),
+            {
+                'events': [
+                    {
+                        'move': {
+                            'piece': {'value': 12},
+                            'type': 'PickingMove'
+                        },
+                        'player': {'name': 'bingo'}
+                    }
+                ],
+                'player_a': {'name': 'bingo'},
+                'player_b': {'name': 'sam'},
+                'winner': None
+            }
+        )

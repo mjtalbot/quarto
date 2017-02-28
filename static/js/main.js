@@ -1,22 +1,18 @@
 class Control{
-    constructor(game_uuid, game_container, control_container){
+    constructor(socket, game_uuid, game_container, control_container){
+        this.socket = socket;
         this.game = null;
         this.game_uuid = game_uuid;
         this.player_name = '';
         this.game_container = game_container;
         this.control_container = control_container;
-        //Self-executing func which takes 'this' as self
-        setInterval(
-            function() {
-                 this.keep_game_upto_date();
-            }.bind(this), 1000
-        );
 
         if (this.game_uuid !== ''){
             this.get_game(this.game_uuid);
         }
         this.draw_control();
         this.attach_listeners();
+        this.attach_socket_handlers();
     }
     create_game(player_name){
         var request = $.ajax({
@@ -32,6 +28,8 @@ class Control{
                 // should be somewhere else.
                 window.location.hash = data.game_uuid;
                 this.get_game(data.game_uuid);
+                this.game_uuid = '';
+                this.draw_control();
             }
         }.bind(this));
     }
@@ -47,41 +45,29 @@ class Control{
         request.done(function(data, status, response) {
             if (response.status == 200) {
                 this.get_game(game_uuid);
+                this.game_uuid = '';
+                this.draw_control();
             }
         }.bind(this));
     }
     picking_move(game_uuid, player_name, number){
-        var request = $.ajax({
-            url: `/api/v1/game/quarto/${game_uuid}/pick`,
-            method: "POST",
-            dataType: "json",
-            data: {
-                'player_name': player_name,
-                'number': number,
+        this.socket.emit(
+            'pick_piece', {
+                game_uuid: game_uuid,
+                player_name: player_name,
+                number: number
             }
-        });
-        request.done(function(data, status, response) {
-            if (response.status == 200) {
-                this.get_game(game_uuid);
-            }
-        }.bind(this));
+        );
     }
     placement_move(game_uuid, player_name, x, y){
-        var request = $.ajax({
-            url: `/api/v1/game/quarto/${game_uuid}/place`,
-            method: "POST",
-            dataType: "json",
-            data: {
-                'player_name': player_name,
-                'x': x,
-                'y': y
+        this.socket.emit(
+            'place_piece', {
+                game_uuid: game_uuid,
+                player_name: player_name,
+                x: x,
+                y: y,
             }
-        });
-        request.done(function(data, status, response) {
-            if (response.status == 200) {
-                this.get_game(game_uuid);
-            }
-        }.bind(this));
+        );
     }
     get_game(game_uuid){
         var request = $.ajax({
@@ -97,17 +83,17 @@ class Control{
                     data.winner,
                     data.events
                 );
-                $(this.game_container).html(
-                    this.game.get_svg()
+                this.socket.emit(
+                    'watch_game', {game_uuid: game_uuid}
                 );
-
+                this.apply_game_update();
             }
         }.bind(this));
     }
-    keep_game_upto_date(){
-        if (this.game && !this.game.winner) {
-            this.get_game(this.game.uuid);
-        }
+    apply_game_update(){
+        $(this.game_container).html(
+            this.game.get_svg()
+        );
     }
     draw_buttons(){
         var create_class = 'btn-warning';
@@ -160,7 +146,6 @@ class Control{
         $(this.control_container).on('input', 'input', function(){
             this.player_name = $('#player-name').val();
             this.game_uuid = $('#game-uuid').val();
-            console.log($('#game-uuid').val());
             this.draw_buttons();
         }.bind(this));
 
@@ -206,12 +191,32 @@ class Control{
             );
         }.bind(this));
     }
+    attach_socket_handlers() {
+        this.socket.on('player_joined', function(data) {
+            this.game.set_player_b(data.name);
+            this.apply_game_update();
+        }.bind(this));
+        this.socket.on('player_won', function(data) {
+            this.game.set_winner(data.name);
+            this.apply_game_update();
+        }.bind(this));
+        this.socket.on('game_event', function(data) {
+            this.game.apply_event(data);
+            this.apply_game_update();
+        }.bind(this));
+    }
 }
 
+var get_socket_connection = function() {
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    return socket;
+};
+
 $(document).ready(function(){
+    var socket = get_socket_connection();
     var game_uuid = window.location.hash.substr(1);
     var control = new Control(
-        game_uuid, '#game-space', '#control'
+        socket, game_uuid, '#game-space', '#control'
     );
     $(document).ajaxError(
         function(event, request, settings){
@@ -227,8 +232,4 @@ $(document).ready(function(){
             }
         }
     );
-
-
-
-
 });

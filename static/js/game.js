@@ -29,20 +29,29 @@ class Game {
             // }
             // {"move":{"type":"PlacementMove","x":2,"y":0},"player":{"name":"asdf2"}}
             events.forEach(function(item, index, array){
-                if (item.move.type == 'PickingMove') {
-                    this.board.select_piece(
-                        item.move.piece.value
-                    );
-                }
-                else if (item.move.type == 'PlacementMove'){
-                    this.board.set_piece(
-                        item.move.x,
-                        item.move.y
-                    );
-                }
-                this.events.push(item);
+                this.apply_event(item);
             }.bind(this));
         }
+    }
+    apply_event(item){
+        if (item.move.type == 'PickingMove') {
+            this.board.select_piece(
+                item.move.piece.value
+            );
+        }
+        else if (item.move.type == 'PlacementMove'){
+            this.board.set_piece(
+                item.move.x,
+                item.move.y
+            );
+        }
+        this.events.push(item);
+    }
+    set_player_b(name){
+        this.player_b = new Player(name);
+    }
+    set_winner(name){
+        this.winner = new Player(name);
     }
     get_player_a(){
         if (this.player_a){

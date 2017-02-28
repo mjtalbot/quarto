@@ -28,7 +28,6 @@ class GameServer:
             game_uuid
         )
         with open(storage_path, 'w') as f:
-            print(game.to_dict())
             f.write(json.dumps(game.to_dict()))
         return game_uuid
 
