@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from server.game_server import GameServer, GameNotFound
 from server.flask_helpers import InvalidUsage
 from models.configuration import configuration
-from models.mechanics import GameStateError
+from models.quarto import GameStateError
 
 from flask_socketio import SocketIO, join_room, leave_room
 
@@ -152,6 +152,15 @@ def join_game(game_uuid):
     )
 
 
+@socketio.on('join_game')
+def handle_join_game(json):
+    game_uuid = _get_required_param('game_uuid', data=json)
+    player_name = _get_required_param('player_name', data=json)
+    game_wrapper.join_game(
+        game_uuid, player_name
+    )
+
+
 @app.route("/api/v1/game/quarto/<game_uuid>/pick", methods=["POST"])
 def pick_piece(game_uuid):
     player_name = _get_required_param('player_name')
@@ -178,9 +187,20 @@ def handle_watch_game(json):
     rooms = socketio.server.rooms(request.sid)
     join_room_uuid = json['game_uuid']
     for room_id in rooms:
-        if room_id not in (join_room_uuid, request.sid):
+        if room_id not in (
+            join_room_uuid, request.sid
+        ):
             leave_room(room_id)
     join_room(join_room_uuid)
+    handle_load_game(json)
+
+
+@socketio.on('load_game')
+def handle_load_game(json):
+    game = game_server.load_game(json['game_uuid'])
+    socketio.server.emit(
+        'game', game.to_dict(), room=request.sid
+    )
 
 
 @socketio.on('place_piece')
@@ -202,6 +222,16 @@ def handle_pick_piece(json):
     game_wrapper.pick_piece(
         game_uuid, player_name, number
     )
+
+
+@socketio.on('join_lobby')
+def handle_join_lobby(json):
+    name = _get_required_param('name', data=json)
+
+
+@socketio.on_error()
+def error_handler(e):
+    print('There was an error', str(e))
 
 
 if __name__ == "__main__":

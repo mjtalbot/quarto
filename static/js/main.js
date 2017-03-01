@@ -204,6 +204,9 @@ class Control{
             this.game.apply_event(data);
             this.apply_game_update();
         }.bind(this));
+        this.socket.on('connect', function(data) {
+            console.log('omg connect', data);
+        }.bind(this));
     }
 }
 

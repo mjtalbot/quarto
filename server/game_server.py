@@ -1,8 +1,9 @@
 import os
 import json
 import uuid
-from models.mechanics import Game, Player, PickingMove, PlacementMove, Event
-from models.parts import Piece
+from models.quarto import (
+    Game, Player, PickingMove, PlacementMove, Event, Piece
+)
 
 
 class GameNotFound(Exception):
